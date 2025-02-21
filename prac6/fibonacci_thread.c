@@ -1,51 +1,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-
-#define N 10  // Number of Fibonacci numbers
-
-int fibonacci[N];  // Shared array to store Fibonacci series
-
-// Function to generate Fibonacci number for each thread
-void* generate_fibonacci(void* arg) {
-    int index = *(int*)arg;
-    
-    // Compute Fibonacci number
-    if (index == 0) {
-        fibonacci[index] = 0;
-    }
-    else if (index == 1) {
-        fibonacci[index] = 1;
-    }
-    else {
-        fibonacci[index] = fibonacci[index-1] + fibonacci[index-2];
-    }
-
-    printf("Thread %d computed Fibonacci[%d] = %d\n", index, index, fibonacci[index]);
+int *fib, n;
+void *compute_fibonacci(void *arg)
+{
+    int index = *(int *)arg;
+    if (index == 0)
+        fib[index] = 0;
+    else if (index == 1)
+        fib[index] = 1;
+    else
+        fib[index] = fib[index - 1] + fib[index - 2];
     pthread_exit(NULL);
 }
-
-int main() {
-    pthread_t threads[N];
-    int indexes[N];
-
-    // Create N threads
-    for (int i = 0; i < N; i++) {
-        indexes[i] = i;
-        pthread_create(&threads[i], NULL, generate_fibonacci, (void*)&indexes[i]);
+int main()
+{
+    printf("Enter the number of Fibonacci numbers to generate: ");
+    scanf("%d", &n);
+    if (n <= 0)
+    {
+        printf("Please enter a positive integer.\n");
+        return 1;
     }
-
-    // Join all threads
-    for (int i = 0; i < N; i++) {
+    fib = (int *)malloc(n * sizeof(int));
+    pthread_t threads[n];
+    int indices[n];
+    for (int i = 0; i < n; i++)
+    {
+        indices[i] = i;
+        pthread_create(&threads[i], NULL, compute_fibonacci, &indices[i]);
         pthread_join(threads[i], NULL);
     }
-
-    // Print the complete Fibonacci series
-    printf("\nFibonacci Series of %d terms:\n", N);
-    for (int i = 0; i < N; i++) {
-        printf("%d ", fibonacci[i]);
-    }
+    printf("Fibonacci Series: ");
+    for (int i = 0; i < n; i++)
+        printf("%d ", fib[i]);
     printf("\n");
 
+    free(fib);
     return 0;
 }
